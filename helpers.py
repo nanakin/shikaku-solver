@@ -18,7 +18,7 @@ def is_a_possibility(starts, size, area_coord, grid=None):
     (start_y, start_x), (r_height, r_width) = starts, size
     end_y, end_x = start_y + r_height, start_x + r_width
 
-    if (not (0 <= start_y < height and 0 <= start_x < width)  # size/position out of the grid
+    if (not (0 < start_x + r_width <= width and 0 < start_y + r_height <= height)  # size/position out of the grid
             or is_area_info_in_rectangle()):  # cross another area number
         return False
     elif grid is None:
@@ -45,9 +45,10 @@ def initial_possibilities_calculation():
             for w in range(r_width):
                 for h in range(r_height):
                     start_y, start_x = area_coord[0] - h, area_coord[1] - w
-                    possibility = ((start_y, start_x), (r_height, r_width))
-                    if is_a_possibility(*possibility, area_coord):
-                        solutions.append(possibility)
+                    if start_x >= 0 and start_y >= 0:
+                        possibility = ((start_y, start_x), (r_height, r_width))
+                        if is_a_possibility(*possibility, area_coord):
+                            solutions.append(possibility)
             if r_width == r_height:  # if the shape is a square, do not rotate
                 break
         return solutions
