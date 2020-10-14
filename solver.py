@@ -1,5 +1,5 @@
 from helpers import lexicographical_grid, get_from_cache, get_assumed_possibilities_from_an_area, is_a_possibility, \
-    get_empty_cells_possibilities
+    get_empty_cells_possibilities, is_cell_in_rectangle
 import numpy as np
 from itertools import count
 
@@ -36,7 +36,9 @@ def resolve(remaining_possibilities, grid_state):
         remaining_possibilities = reduced_possibilities
 
         # Part 2: Filter by cell (optional part that accelerates the convergence)
-        # if a box grid can be used by only one rectangle: add it
+        # if a box grid can be used by:
+        # - only one rectangle: add it
+        # - only one area, eliminate the area possibilities that don't use this cell.
         # if a cell cannot be reached: end the resolver
         for box_coord, box_possibilities in get_empty_cells_possibilities(remaining_possibilities, grid_state).items():
             if grid_state[box_coord] == 0:  # re-check as new rectangles may be added to the grid during the iteration
@@ -47,6 +49,16 @@ def resolve(remaining_possibilities, grid_state):
                 elif len(box_possibilities) <= 1:
                     print('not OK cells', box_coord, grid_state[box_coord])
                     return None, None  # an empty box cannot be filled: the grid cannot be solved
+                elif len(set([box_possibility[2] for box_possibility in box_possibilities])) == 1:  # from one area
+                    previous = len(remaining_possibilities[box_possibilities[0][2]])
+                    remaining_possibilities[box_possibilities[0][2]] = [
+                        area_possibility for area_possibility in
+                        remaining_possibilities[box_possibilities[0][2]]
+                        if is_cell_in_rectangle(box_coord, area_possibility)]
+                    if len(remaining_possibilities[box_possibilities[0][2]]) < previous:
+                        new_rectangle_found_during_iteration = True
+                        print(f'eliminate possibilities for area {box_possibilities[0][2]} not using {box_coord}')
+
     return grid_state, remaining_possibilities
 
 

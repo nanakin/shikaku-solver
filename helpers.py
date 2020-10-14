@@ -5,6 +5,13 @@ from grid_info import width, height, areas
 import math
 
 
+def is_cell_in_rectangle(cell_coord, rectangle_info):
+    """Verify if a cell is in a rectangle."""
+    rect_coord, rect_size = rectangle_info
+    return (rect_coord[0] <= cell_coord[0] < rect_coord[0] + rect_size[0]
+            and rect_coord[1] <= cell_coord[1] < rect_coord[1] + rect_size[1])
+
+
 def is_a_possibility(starts, size, area_coord, grid=None):
     """Verify if a given zone is free."""
 
