@@ -61,9 +61,9 @@ def initial_possibilities_calculation():
     return initial_possibilities
 
 
-def get_cells_possibilities(remaining_possibilities, grid_state):
+def get_empty_cells_possibilities(remaining_possibilities, grid_state):
     """Get the usage of each empty cell by the pre-calculated areas shapes possibilities."""
-    empty_cells_usage = {(y, x): [] for y in range(height) for x in range(width) if grid_state[y, x] != 0}
+    empty_cells_usage = {(y, x): [] for y in range(height) for x in range(width) if grid_state[y, x] == 0}
     for area_coord, possibilities in remaining_possibilities.items():
         for starts, size in possibilities:
             for cell_y in range(starts[0], starts[0] + size[0]):

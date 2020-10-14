@@ -1,5 +1,5 @@
 from helpers import lexicographical_grid, get_from_cache, get_assumed_possibilities_from_an_area, is_a_possibility, \
-    get_cells_possibilities
+    get_empty_cells_possibilities
 import numpy as np
 from itertools import count
 
@@ -27,21 +27,26 @@ def resolve(remaining_possibilities, grid_state):
             reduced_possibilities[area_coord] = [possibility for possibility in possibilities
                                                  if is_a_possibility(*possibility, area_coord, grid_state)]
             if len(reduced_possibilities[area_coord]) == 0:  # not shape fit in the area, the grid cannot be solved
+                print('not OK rect')
                 return None, None
             elif len(reduced_possibilities[area_coord]) == 1:  # found an area solution
+                print('found 1 rectangle')
                 add_rectangle(*reduced_possibilities[area_coord][0])
                 del reduced_possibilities[area_coord]
         remaining_possibilities = reduced_possibilities
 
         # Part 2: Filter by cell (optional part that accelerates the convergence)
-        # if a box grid can be used by only one rectangle: add it, if a cell cannot be reached: end the resolver
-        for box_coord, box_possibilities in get_cells_possibilities(remaining_possibilities, grid_state).items():
-            if len(box_possibilities) == 1 and is_a_possibility(*box_possibilities[0], grid_state):
-                add_rectangle(*box_possibilities[0][0:2])  # only one shape can use the cell
-                del remaining_possibilities[box_possibilities[0][2]]
-            elif len(box_possibilities) <= 1:
-                return None, None  # an empty box cannot be filled: the grid cannot be solved
-
+        # if a box grid can be used by only one rectangle: add it
+        # if a cell cannot be reached: end the resolver
+        for box_coord, box_possibilities in get_empty_cells_possibilities(remaining_possibilities, grid_state).items():
+            if grid_state[box_coord] == 0:  # re-check as new rectangles may be added to the grid during the iteration
+                if len(box_possibilities) == 1 and is_a_possibility(*box_possibilities[0], grid_state):
+                    print('found 1 rectangle by cells')
+                    add_rectangle(*box_possibilities[0][0:2])  # only one shape can use the cell
+                    del remaining_possibilities[box_possibilities[0][2]]
+                elif len(box_possibilities) <= 1:
+                    print('not OK cells', box_coord, grid_state[box_coord])
+                    return None, None  # an empty box cannot be filled: the grid cannot be solved
     return grid_state, remaining_possibilities
 
 
