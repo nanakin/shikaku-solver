@@ -58,9 +58,13 @@ To minimize the number of recursion due to assumptions we use a **cache** that k
 
 ### The algorithm by example
 To illustrate the solver steps here a simple example.
-Let's take this small grid: 
+
+Let's take this small grid:
+
 ![empty-solver](https://user-images.githubusercontent.com/14202917/95756371-fedd8680-0ca5-11eb-8d96-2634a14b5be7.png)
+
 Find all possible rectangles for all areas
+
 ![possibilities](https://user-images.githubusercontent.com/14202917/95356384-e39a0200-08c6-11eb-8bee-098a69df23a3.png)
 
 As mentioned earlier, there are 2 main known techniques to solve a grid, we will analyze them independently for more clarity.
@@ -84,6 +88,31 @@ As mentioned earlier, there are 2 main known techniques to solve a grid, we will
     
 ![technique-2](https://user-images.githubusercontent.com/14202917/96125642-30e42800-0ef4-11eb-87e6-f3296a15fa6b.png)
 
+## Technology
+This solver is made using Python 3.
+
+### Installation
+
+1. Clone this repository using `git clone`
+
+2. Create a virtual environment (optional):
+    ```sh
+    python3 -m venv shikaku-solver
+    ```
+    and activate it:
+
+    ```sh
+    shikaku-solver\Scripts\activate.bat # windows
+    ```
+    ```sh
+    source shikaku-solver/bin/activate # unix, macOS
+    ```
+4. Install packages dependency:
+
+    Dependencies are : `numpy`, `colorama`
+    ```sh
+    python3 -m pip install -r requirements.txt
+    ```
 
 ## Contribution
 Feel free to suggest enhancement and report any error/non-sense or miss-understood code.
