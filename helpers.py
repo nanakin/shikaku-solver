@@ -5,6 +5,10 @@ from grid_info import width, height, areas
 import math
 
 
+def area_info(area_coord):
+    return f'area {area_coord} {areas[area_coord]}'
+
+
 def is_cell_in_rectangle(cell_coord, rectangle_info):
     """Verify if a cell is in a rectangle."""
     rect_coord, rect_size = rectangle_info
@@ -63,7 +67,7 @@ def initial_possibilities_calculation():
     initial_possibilities = {coord: [] for coord in areas.keys()}
     for coord, area in areas.items():
         initial_possibilities[coord] = []
-        for divisors in get_divisors(area):  # for each shape get the positions
+        for divisors in get_divisors(area):
             possibilities = get_available_places(coord, divisors)
             initial_possibilities[coord].extend(possibilities)
     return initial_possibilities
