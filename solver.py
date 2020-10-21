@@ -103,4 +103,7 @@ def resolve_with_assumptions(remaining_possibilities, grid_state, rec_lvl=0):
                 if solutions is not None:
                     correct_solutions.update(solutions)
             cache[zeros_hash] = correct_solutions
-            return correct_solutions
+            if len(correct_solutions) > 0:
+                return correct_solutions
+            else:
+                return None
