@@ -2,15 +2,18 @@ from operator import mul
 import string
 import numpy as np
 import math
-from collections import namedtuple
+from collections import namedtuple, defaultdict
+
+
+Size = namedtuple('Size', ['height', 'width'])
+Coord = namedtuple('Coord', ['y', 'x'])
+Possibility = namedtuple('Possibility', ['start', 'size'])
 
 
 class Grid:
 
-    Size = namedtuple('Size', ['height', 'width'])
-
     def __init__(self, size, areas, values=None):
-        self.size = self.Size(*size)
+        self.size = Size(*size)
         self.areas = areas
         self.cells = values if values is not None else np.zeros(self.size, dtype=int)
 
@@ -22,32 +25,30 @@ def area_info(area_coord, grid):
     return f'area {area_coord} {grid.areas[area_coord]}'
 
 
-def is_cell_in_rectangle(cell_coord, rectangle_info):
+def is_cell_in_rectangle(cell_coord, possibility):
     """Verify if a cell is in a rectangle."""
-    rect_coord, rect_size = rectangle_info
-    return (rect_coord[0] <= cell_coord[0] < rect_coord[0] + rect_size[0]
-            and rect_coord[1] <= cell_coord[1] < rect_coord[1] + rect_size[1])
+    return (possibility.start.y <= cell_coord.y < possibility.start.y + possibility.size.height
+            and possibility.start.x <= cell_coord.x < possibility.start.x + possibility.size.width)
 
 
-def is_a_possibility(starts, size, area_coord, grid):
+def is_a_possibility(p, area_coord, grid):
     """Verify if a given zone is free."""
 
     def is_area_info_in_rectangle():
         """Verify if there is another area number in the zone."""
-        for coord in ((y_check, x_check) for y_check in range(start_y, end_y) for x_check in range(start_x, end_x)):
+        for coord in ((y_check, x_check) for y_check in range(p.start.y, end_y) for x_check in range(p.start.x, end_x)):
             if coord in grid.areas.keys() and coord != area_coord:
                 return True
         return False
 
-    (start_y, start_x), (r_height, r_width) = starts, size
-    end_y, end_x = start_y + r_height, start_x + r_width
+    end_y, end_x = p.start.y + p.size.height, p.start.x + p.size.width
 
     if is_area_info_in_rectangle():  # cross another area number
         return False
 
-    rectangle = grid.cells[start_y:end_y, start_x:end_x]
+    rectangle = grid.cells[p.start.y:end_y, p.start.x:end_x]
     free_space = rectangle[np.where(rectangle == 0)]
-    return free_space.size == r_width * r_height  # OK if the given zone is not occupied
+    return free_space.size == p.size.width * p.size.height  # OK if the given zone is not occupied
 
 
 def initial_possibilities_calculation(grid):
@@ -65,11 +66,11 @@ def initial_possibilities_calculation(grid):
         for r_width, r_height in [size, reversed(size)]:
             for w in range(r_width):
                 for h in range(r_height):
-                    start_y, start_x = area_coord[0] - h, area_coord[1] - w
+                    start_y, start_x = area_coord.y - h, area_coord.x - w
                     if (start_x >= 0 and start_y >= 0 and 0 < start_x + r_width <= grid.size.width
                             and 0 < start_y + r_height <= grid.size.height):
-                        possibility = ((start_y, start_x), (r_height, r_width))
-                        if is_a_possibility(*possibility, area_coord, grid):
+                        possibility = Possibility(Coord(start_y, start_x), Size(r_height, r_width))
+                        if is_a_possibility(possibility, area_coord, grid):
                             solutions.append(possibility)
             if r_width == r_height:  # if the shape is a square, do not rotate
                 break
@@ -86,13 +87,13 @@ def initial_possibilities_calculation(grid):
 
 def get_empty_cells_possibilities(remaining_possibilities, grid):
     """Get the usage of each empty cell by the pre-calculated areas shapes possibilities."""
-    empty_cells_usage = {(y, x): [] for y in range(grid.size.height) for x in range(grid.size.width) if grid.cells[y, x] == 0}
+    empty_cells_usage = {Coord(y, x): defaultdict(list) for y in range(grid.size.height) for x in range(grid.size.width) if grid.cells[y, x] == 0}
     for area_coord, possibilities in remaining_possibilities.items():
         for starts, size in possibilities:
-            for cell_y in range(starts[0], starts[0] + size[0]):
-                for cell_x in range(starts[1], starts[1] + size[1]):
+            for cell_y in range(starts.y, starts.y + size.height):
+                for cell_x in range(starts.x, starts.x + size.width):
                     if (cell_y, cell_x) in empty_cells_usage:
-                        empty_cells_usage[(cell_y, cell_x)].append((starts, size, area_coord))
+                        empty_cells_usage[(cell_y, cell_x)][area_coord].append(Possibility(Coord(*starts), Size(*size)))
     return empty_cells_usage
 
 
