@@ -2,6 +2,7 @@ from operator import mul
 import string
 import numpy as np
 import math
+import logging
 from collections import namedtuple, defaultdict
 
 
@@ -20,6 +21,27 @@ class Grid:
 
     def __copy__(self):
         return Grid(self.size, self.areas, np.copy(self.cells))
+
+
+class Log:
+    rec_lvl = -1
+
+    @classmethod
+    def info(cls, to_print, **kwargs):
+        logging.info(f"{'|' * cls.rec_lvl}-{to_print}", **kwargs)
+
+    @classmethod
+    def debug(cls, to_print, **kwargs):
+        logging.debug(f"{'|' * cls.rec_lvl}-{to_print}", **kwargs)
+
+    @classmethod
+    def store_recursion_level(cls, func):
+        def wrapper(*args, **kwargs):
+            cls.rec_lvl += 1
+            res = func(*args, **kwargs)
+            cls.rec_lvl -= 1
+            return res
+        return wrapper
 
 
 def area_info(area_coord, grid):
@@ -149,4 +171,4 @@ def get_assumed_possibilities_from_an_area(remaining_possibilities):
     for rect_possibility in remaining_possibilities[candidate_coord]:
         assumed_possibilities = remaining_possibilities
         assumed_possibilities[candidate_coord] = [rect_possibility]  # select one candidate's possibility (one shape)
-        yield assumed_possibilities
+        yield assumed_possibilities, rect_possibility
