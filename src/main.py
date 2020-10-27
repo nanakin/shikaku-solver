@@ -22,6 +22,7 @@ def read_grid(read_line=input):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="provide a path to a puzzle grid")
+    parser.add_argument("--color", help="print solution(s) grid with colors", action="store_true")
     args = parser.parse_args()
 
     if args.file:
@@ -31,4 +32,4 @@ if __name__ == "__main__":
         grid = read_grid()
 
     results = shikaku_solve(grid)
-    print_result(results, grid)
+    print_result(results, grid, args.color)
