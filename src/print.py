@@ -4,9 +4,9 @@ import sys
 
 def print_result(solutions, grid):
     if solutions is None:
-        print('Unsolvable grid')
+        print('0', 'Unsolvable grid')
     else:
-        print('\n', len(solutions), 'solutions', '\n')
+        print(len(solutions), 'solutions', '\n')
         solution = min(solutions)
         c.init()
         colors = (c.Fore.RED, c.Fore.GREEN, c.Fore.YELLOW, c.Fore.BLUE, c.Fore.MAGENTA, c.Fore.CYAN)
