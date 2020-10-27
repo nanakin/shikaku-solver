@@ -52,23 +52,24 @@ def resolve(remaining_possibilities, grid):
             if grid.cells[cell_coord] == 0:  # re-check as new rectangles may be added to the grid during the iteration
                 if len(areas_possibilities) == 1:  # cell used by only one area
                     area_coord, cell_possibilities = next(iter(areas_possibilities.items()))
-                    if len(cell_possibilities) == 1:  # cell used by only one rectangle area
-                        cell_possibility = cell_possibilities[0]
-                        if is_a_possibility(cell_possibility, area_coord, grid):
-                            logging.info(f' + rectangle added for {area_info(area_coord, grid)} - from cells')
-                            add_rectangle(*cell_possibility)  # only one shape can use the cell
-                            del remaining_possibilities[area_coord]
-                        else:  # not accurate possibility
-                            logging.info(f'x grid not solvable - impossible to fit the cell {cell_coord}')
-                            return None  # an empty box cannot be filled: the grid cannot be solved
-                    else:  # eliminate the area possibilities that do not use this cell
-                        previous = len(cell_possibilities)
-                        remaining_possibilities[area_coord] = [
-                            rect_possibility for rect_possibility in remaining_possibilities[area_coord]
-                            if is_cell_in_rectangle(cell_coord, rect_possibility)]
-                        if len(remaining_possibilities[area_coord]) < previous:
-                            new_change_during_iteration = True
-                            logging.info(f' - eliminate poss. for {area_info(area_coord, grid)} not using {cell_coord}')
+                    if grid.cells[area_coord] == 0:  # re-check that the area was not already filled by a previous iter.
+                        if len(cell_possibilities) == 1:  # cell used by only one rectangle area
+                            cell_possibility = cell_possibilities[0]
+                            if is_a_possibility(cell_possibility, area_coord, grid):
+                                logging.info(f' + rectangle added for {area_info(area_coord, grid)} - from cells')
+                                add_rectangle(*cell_possibility)  # only one shape can use the cell
+                                del remaining_possibilities[area_coord]
+                            else:  # not accurate possibility
+                                logging.info(f'x grid not solvable - impossible to fit the cell {cell_coord}')
+                                return None  # an empty box cannot be filled: the grid cannot be solved
+                        else:  # eliminate the area possibilities that do not use this cell
+                            previous = len(cell_possibilities)
+                            remaining_possibilities[area_coord] = [
+                                rect_possibility for rect_possibility in remaining_possibilities[area_coord]
+                                if is_cell_in_rectangle(cell_coord, rect_possibility)]
+                            if len(remaining_possibilities[area_coord]) < previous:
+                                new_change_during_iteration = True
+                                logging.info(f' - eliminate poss. for {area_info(area_coord, grid)} not using {cell_coord}')
                 elif len(areas_possibilities) == 0:  # if no possibility
                     logging.info(f'x grid not solvable - impossible to fit the cell {cell_coord}')
                     return None  # an empty box cannot be filled: the grid cannot be solved
