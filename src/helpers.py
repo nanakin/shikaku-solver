@@ -4,6 +4,7 @@ import numpy as np
 import math
 import logging
 from collections import namedtuple, defaultdict
+from functools import wraps
 
 
 Size = namedtuple('Size', ['height', 'width'])
@@ -36,12 +37,13 @@ class Log:
 
     @classmethod
     def store_recursion_level(cls, func):
-        def wrapper(*args, **kwargs):
+        @wraps(func)
+        def counting_wrapper(*args, **kwargs):
             cls.rec_lvl += 1
             res = func(*args, **kwargs)
             cls.rec_lvl -= 1
             return res
-        return wrapper
+        return counting_wrapper
 
 
 def area_info(area_coord, grid):
@@ -106,21 +108,21 @@ def initial_possibilities_calculation(grid):
     return initial_possibilities
 
 
+def empty_cells(grid):
+    return (Coord(*tuple(empty_coord)) for empty_coord in np.argwhere(grid.cells == 0))
+
+
 def empty_cells_possibilities(remaining_possibilities, grid):
     """Get the usage of each empty cell by the areas rectangle possibilities."""
 
-    empty_cells_usage = {Coord(y, x): defaultdict(list)
-                         for y in range(grid.size.height)
-                         for x in range(grid.size.width)
-                         if grid.cells[y, x] == 0}
-
+    empty_cells_usage = {coord: defaultdict(list) for coord in empty_cells(grid)}
     for area_coord, possibilities in remaining_possibilities.items():
-        for starts, size in possibilities:
-            for cell_y in range(starts.y, starts.y + size.height):
-                for cell_x in range(starts.x, starts.x + size.width):
+        for p in possibilities:
+            start, size = p
+            for cell_y in range(start.y, start.y + size.height):
+                for cell_x in range(start.x, start.x + size.width):
                     if (cell_y, cell_x) in empty_cells_usage:
-                        empty_cells_usage[(cell_y, cell_x)][area_coord].append(
-                            Possibility(Coord(*starts), Size(*size)))
+                        empty_cells_usage[(cell_y, cell_x)][area_coord].append(p)
     return empty_cells_usage
 
 
@@ -130,11 +132,11 @@ def lexicographical_grid(grid):
     ascii_solution = []
     i_letter = 0
     rectangles_letter = {}
-    for rect_box in np.reshape(grid.cells, grid.size.height * grid.size.width):
-        if rect_box not in rectangles_letter.keys():
-            rectangles_letter[rect_box] = letters[i_letter]
+    for cell in np.reshape(grid.cells, grid.size.height * grid.size.width):
+        if cell not in rectangles_letter.keys():
+            rectangles_letter[cell] = letters[i_letter % len(letters)]
             i_letter += 1
-        ascii_solution.append(rectangles_letter[rect_box])
+        ascii_solution.append(rectangles_letter[cell])
     return ''.join(ascii_solution)
 
 

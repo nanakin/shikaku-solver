@@ -27,6 +27,11 @@ def test_15x20_20():
     assert '20' in out[0:2]
 
 
+def test_5x5_1():
+    out = run_solver('puzzle-grids/5x5-1')
+    assert '1' in out[0]
+
+
 def test_unsolvable():
     out = run_solver('puzzle-grids/15x20-0')
     assert '0' in out[0]

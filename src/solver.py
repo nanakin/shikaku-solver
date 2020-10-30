@@ -53,7 +53,7 @@ def resolve(remaining_possibilities, grid):
                     if grid.cells[area_coord] == 0:  # re-check that the area was not already filled by a previous iter.
                         if len(cell_possibilities) == 1:  # cell used by only one rectangle area
                             cell_possibility = cell_possibilities[0]
-                            if is_a_possibility(cell_possibility, area_coord, grid):
+                            if is_zone_free(cell_possibility, grid):
                                 Log.info(f'rectangle added for {area_info(area_coord, grid)} - from cells')
                                 add_rectangle(*cell_possibility)  # only one shape can use the cell
                                 del remaining_possibilities[area_coord]
@@ -108,6 +108,6 @@ def resolve_with_assumptions(remaining_possibilities, grid):
 
 
 def shikaku_solve(grid):
-    """Calculate all possibilities then resolve the grid."""
+    """Calculate all possibilities then find the good ones to resolve the grid."""
     return resolve_with_assumptions(remaining_possibilities=initial_possibilities_calculation(grid),
                                     grid=grid)

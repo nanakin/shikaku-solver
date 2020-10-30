@@ -107,7 +107,7 @@ This solver is made using Python 3.
     ```sh
     source shikaku-solver/bin/activate # unix, macOS
     ```
-4. Install packages dependency:
+4. Install required packages:
 
     Dependencies are : `numpy`, `colorama`
     ```sh
