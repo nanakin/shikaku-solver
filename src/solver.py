@@ -61,11 +61,8 @@ def resolve(remaining_possibilities, grid):
                                 Log.info(f'<<< unsolvable - impossible to fit the cell {cell_coord}')
                                 return None  # an empty box cannot be filled: the grid cannot be solved
                         else:  # eliminate the area possibilities that do not use this cell
-                            previous = len(cell_possibilities)
-                            remaining_possibilities[area_coord] = [
-                                rect_possibility for rect_possibility in remaining_possibilities[area_coord]
-                                if is_cell_in_rectangle(cell_coord, rect_possibility)]
-                            if len(remaining_possibilities[area_coord]) < previous:
+                            if len(remaining_possibilities[area_coord]) > len(cell_possibilities):
+                                remaining_possibilities[area_coord] = cell_possibilities
                                 new_change_during_iteration = True
                                 Log.debug(f'eliminate poss. for {area_info(area_coord, grid)} not using {cell_coord}')
                 elif len(areas_possibilities) == 0:  # if no possibility
