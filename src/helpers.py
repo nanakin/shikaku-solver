@@ -58,14 +58,11 @@ def is_cell_in_rectangle(cell_coord, possibility):
 def is_a_possibility(p, area_coord, grid):
     """Verify if a given zone is OK."""
 
-    def is_area_info_in_rectangle():
+    def is_another_area_info_in_rectangle():
         """Verify if the zone contains another area number."""
-        for coord in ((y_check, x_check)
-                      for y_check in range(p.start.y, end_y)
-                      for x_check in range(p.start.x, end_x)):
-            if coord in grid.areas.keys() and coord != area_coord:
-                return True
-        return False
+        def is_area_in_rect(coord):
+            return p.start.y <= coord.y < end_y and p.start.x <= coord.x < end_x
+        return any((is_area_in_rect(coord) for coord in grid.areas.keys() if coord != area_coord))
 
     def is_zone_free():
         """Verify if the zone is free (not occupied)."""
@@ -75,7 +72,7 @@ def is_a_possibility(p, area_coord, grid):
 
     end_y, end_x = p.start.y + p.size.height, p.start.x + p.size.width
 
-    return (not is_area_info_in_rectangle()) and is_zone_free()
+    return (not is_another_area_info_in_rectangle()) and is_zone_free()
 
 
 def initial_possibilities_calculation(grid):
