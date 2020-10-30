@@ -55,24 +55,21 @@ def is_cell_in_rectangle(cell_coord, possibility):
             and possibility.start.x <= cell_coord.x < possibility.start.x + possibility.size.width)
 
 
-def is_a_possibility(p, area_coord, grid):
-    """Verify if a given zone is OK."""
+def is_zone_free(p, grid):
+    """Verify if the zone is free (not occupied)."""
+    end_y, end_x = p.start.y + p.size.height, p.start.x + p.size.width
+    rectangle = grid.cells[p.start.y:end_y, p.start.x:end_x]
+    free_space = rectangle[np.where(rectangle == 0)]
+    return free_space.size == p.size.width * p.size.height
 
-    def is_another_area_info_in_rectangle():
-        """Verify if the zone contains another area number."""
-        def is_area_in_rect(coord):
-            return p.start.y <= coord.y < end_y and p.start.x <= coord.x < end_x
-        return any((is_area_in_rect(coord) for coord in grid.areas.keys() if coord != area_coord))
 
-    def is_zone_free():
-        """Verify if the zone is free (not occupied)."""
-        rectangle = grid.cells[p.start.y:end_y, p.start.x:end_x]
-        free_space = rectangle[np.where(rectangle == 0)]
-        return free_space.size == p.size.width * p.size.height
+def is_another_area_info_in_rectangle(p, area_coord, grid):
+    """Verify if the zone contains another area number."""
+    def is_area_in_rect(coord):
+        return p.start.y <= coord.y < end_y and p.start.x <= coord.x < end_x
 
     end_y, end_x = p.start.y + p.size.height, p.start.x + p.size.width
-
-    return (not is_another_area_info_in_rectangle()) and is_zone_free()
+    return any((is_area_in_rect(coord) for coord in grid.areas.keys() if coord != area_coord))
 
 
 def initial_possibilities_calculation(grid):
@@ -95,7 +92,7 @@ def initial_possibilities_calculation(grid):
                             and 0 < start_x + width <= grid.size.width
                             and 0 < start_y + height <= grid.size.height):
                         p = Possibility(Coord(start_y, start_x), Size(height, width))
-                        if is_a_possibility(p, area_coord, grid):
+                        if not is_another_area_info_in_rectangle(p, area_coord, grid):
                             solutions.append(p)
             if width == height:  # if the shape is a square, do not rotate
                 break

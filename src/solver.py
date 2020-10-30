@@ -1,4 +1,4 @@
-from helpers import lexicographical_grid, get_from_cache, get_assumed_possibilities_from_an_area, is_a_possibility, \
+from helpers import lexicographical_grid, get_from_cache, get_assumed_possibilities_from_an_area, is_zone_free, \
     empty_cells_possibilities, is_cell_in_rectangle, area_info, initial_possibilities_calculation, Log
 import numpy as np
 from itertools import count
@@ -25,7 +25,7 @@ def resolve(remaining_possibilities, grid):
         reduced_possibilities = {}
         for area_coord, area_possibilities in remaining_possibilities.items():
             accurate_area_possibilities = [possibility for possibility in area_possibilities
-                                           if is_a_possibility(possibility, area_coord, grid)]
+                                           if is_zone_free(possibility, grid)]
             if len(accurate_area_possibilities) == 0:  # not shape fit in the area, the grid cannot be solved
                 Log.info(f'<<< unsolvable - impossible for {area_info(area_coord, grid)}')
                 return None
