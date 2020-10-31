@@ -7,21 +7,20 @@ rectangle_counter = count(start=1)
 cache = {}
 
 
+def add_rectangle(possibility, grid):
+    (y, x), (h, w) = possibility.start, possibility.size
+    grid.cells[y:y + h, x:x + w] = next(rectangle_counter)
+
+
 def resolve(remaining_possibilities, grid):
     """Filter inaccurate possibilities and fill the grid with rectangles. Run until it converges (no new results)."""
 
-    def add_rectangle(starts, size):
-        nonlocal new_change_during_iteration
-        (y, x), (h, w) = starts, size
-        grid.cells[y:y + h, x:x + w] = next(rectangle_counter)
-        new_change_during_iteration = True
+    def filter_by_rect_and_find():
+        """Filter inaccurate rectangles possibilities and find solutions.
 
-    new_change_during_iteration = True
-    while new_change_during_iteration:  # Main solver loop
-        new_change_during_iteration = False
+        If an area has only one possibility, add it to the grid. If an area has no solution: end the resolver.
+        If a possibility is no longer accurate, eliminate it."""
 
-        # Part 1: Filter inaccurate rectangles possibilities from the pre-calculated list
-        # For each area number verify the accuracy of all its possibilities
         reduced_possibilities = {}
         for area_coord, area_possibilities in remaining_possibilities.items():
             accurate_area_possibilities = [possibility for possibility in area_possibilities
@@ -31,7 +30,7 @@ def resolve(remaining_possibilities, grid):
                 return None
             elif len(accurate_area_possibilities) == 1:  # found an area solution
                 Log.info(f'rectangle added for {area_info(area_coord, grid)} - from rectangles')
-                add_rectangle(*accurate_area_possibilities[0])
+                add_rectangle(accurate_area_possibilities[0], grid)
             else:
                 reduced_possibilities[area_coord] = accurate_area_possibilities
                 # logging purpose only
@@ -39,13 +38,14 @@ def resolve(remaining_possibilities, grid):
                 if len(eliminated_possibilities) > 0:
                     Log.debug(f'eliminate {len(eliminated_possibilities)} inaccurate rectangles'
                               f' for {area_info(area_coord, grid)}')
-        remaining_possibilities = reduced_possibilities
+        return reduced_possibilities
 
-        # Part 2: Filter by cell (optional part that accelerates the convergence)
-        # if a cell can be used by:
-        # - only one rectangle: add it
-        # - only one area, eliminate the area possibilities that don't use this cell.
-        # if a cell cannot be reached: end the resolver
+    def filter_by_cell_and_find():
+        """Filter and find by analyzing the cells usage by remaining possibilities.
+
+        If a cell can be used by only one rectangle: add it, only by one area: eliminate the area possibilities that 
+        don't use this cell. If a cell cannot be reached: end the resolver."""
+
         for cell_coord, areas_possibilities in empty_cells_possibilities(remaining_possibilities, grid).items():
             if grid.cells[cell_coord] == 0:  # re-check as new rectangles may be added to the grid during the iteration
                 if len(areas_possibilities) == 1:  # cell used by only one area
@@ -55,7 +55,7 @@ def resolve(remaining_possibilities, grid):
                             cell_possibility = cell_possibilities[0]
                             if is_zone_free(cell_possibility, grid):
                                 Log.info(f'rectangle added for {area_info(area_coord, grid)} - from cells')
-                                add_rectangle(*cell_possibility)  # only one shape can use the cell
+                                add_rectangle(cell_possibility, grid)  # only one shape can use the cell
                                 del remaining_possibilities[area_coord]
                             else:  # not accurate possibility
                                 Log.info(f'<<< unsolvable - impossible to fit the cell {cell_coord}')
@@ -63,11 +63,25 @@ def resolve(remaining_possibilities, grid):
                         else:  # eliminate the area possibilities that do not use this cell
                             if len(remaining_possibilities[area_coord]) > len(cell_possibilities):
                                 remaining_possibilities[area_coord] = cell_possibilities
-                                new_change_during_iteration = True
                                 Log.debug(f'eliminate poss. for {area_info(area_coord, grid)} not using {cell_coord}')
                 elif len(areas_possibilities) == 0:  # if no possibility
                     Log.info(f'<<< unsolvable - impossible to fit the cell {cell_coord}')
                     return None  # an empty box cannot be filled: the grid cannot be solved
+        return remaining_possibilities
+
+    previous_state = None
+    while remaining_possibilities != previous_state:
+        previous_state = remaining_possibilities
+
+        # Part 1: Filter inaccurate rectangles possibilities from the pre-calculated list
+        remaining_possibilities = filter_by_rect_and_find()
+        if remaining_possibilities is None:
+            return None
+
+        # Part 2: Filter by cell (optional part that accelerates the convergence)
+        remaining_possibilities = filter_by_cell_and_find()
+        if remaining_possibilities is None:
+            return None
 
     if len(remaining_possibilities) == 0:
         Log.info('<<< solved')
